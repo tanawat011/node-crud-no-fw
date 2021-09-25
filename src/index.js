@@ -2,16 +2,15 @@ const url = require('url')
 
 const { HTTP_METHOD, HTTP_STATUS } = require('./constants')
 const { apiLogger } = require('./helpers/apiLogger')
+const { diffTimestamp } = require('./helpers/datetime')
 const { routes } = require('./routes')
+const { getMethod, getRouteAndParams, getQuery, getBody } = require('./utils/request')
+const { setHeaders } = require('./utils/response')
 
 const initialServer = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
-  res.setHeader('Access-Control-Max-Age', 2592000)
-  res.setHeader('Content-Type', 'application/json')
-  res.setHeader('X-Powered-By', 'TanawatDEVz')
+  const startTimestamp = new Date().getTime()
 
-  res.log = apiLogger
+  setHeaders(res)
 
   if (req.method === HTTP_METHOD.OPTIONS) {
     res.log(req)
@@ -21,44 +20,41 @@ const initialServer = async (req, res) => {
     return
   }
 
-  const method = req.method.toLowerCase()
-  const headers = req.headers
-  const baseUri = url.parse(req.url, true)
-  const path = baseUri.pathname
-  const query = { ...baseUri.query }
-  const params = routes.find()
+  req.query = undefined
+  req.params = undefined
+  req.log = apiLogger
 
-  console.log({ ...req })
-  console.log(baseUri)
+  res.log = apiLogger
 
-  routes.notFound = (req, res) => {
+  routes.notFound = async (_, res) => {
     res.statusCode = HTTP_STATUS.NOT_FOUND
     res.end(JSON.stringify({ message: 'Path not found' }))
   }
 
+  const baseUri = url.parse(req.url, true)
+  const path = baseUri.pathname
+
+  getMethod(req)
+  getQuery(req, baseUri)
+  const route = getRouteAndParams(req, path, routes)
+
+  console.log(route)
+
   req.on('data', async (data) => {
-    req.body = JSON.parse(data)
+    getBody(req, data)
   }).on('end', async () => {
-    let route = routes[path]
-
-    if (!route || (route && !route[method])) {
-      route = routes['notFound']
-    } else {
-      route = routes[path][method]
-    }
-
     const payload = {
-      method,
-      headers,
+      method: req.method,
+      headers: req.headers,
       path,
-      query,
-      params,
+      query: req.query,
+      params: req.params,
       body: req.body,
     }
 
     await route(payload, res)
 
-    res.log(req)
+    res.log(req, res.statusCode, diffTimestamp(startTimestamp))
     res.end()
   })
 }
