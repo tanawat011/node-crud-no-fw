@@ -1,14 +1,15 @@
 const logger = require('../utils/logger')
 
-const apiLogger = (req, status, duration, success) => {
+const apiLogger = (req, status, duration, isSuccess = true) => {
   const data = {
     method: req.method,
     path: req.url,
-    from: '',
-    userAgent: '',
+    fromHost: req.headers['host'],
+    fromIp: req.connection.remoteAddress,
+    userAgent: req.headers['user-agent'],
     status,
     duration,
-    success,
+    isSuccess,
   }
   logger.info(data)
 }
