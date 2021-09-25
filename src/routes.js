@@ -1,25 +1,40 @@
-const { ROUTES, HTTP_STATUS } = require('./constants')
+const { HTTP_STATUS } = require('./constants')
 const crud = require('./helpers/crud')
 
 const routes = {
-  [ROUTES.V1.TABLES]: {
+  '/api/v1/tables': {
     post: async (req, res) => {
       await crud.create('tables', req.body)
       res.statusCode = HTTP_STATUS.CREATED
-      res.write('Created')
+      res.write('Created table')
     },
     get: async (req, res) => {
-      console.log(req.query)
       res.statusCode = HTTP_STATUS.SUCCESS
-      res.write('Success')
+      res.write('Get table list')
     },
   },
-  [ROUTES.V1.TABLES + '/:id']: {
+  '/api/v1/tables/:id': {
     get: async (req, res) => {
-      console.log(req.query)
-      console.log(req.params)
       res.statusCode = HTTP_STATUS.SUCCESS
-      res.write('Success')
+      res.write('Get table by id ' + req.params.id)
+    },
+  },
+  '/api/v1/tables/:id/columns': {
+    get: async (req, res) => {
+      res.statusCode = HTTP_STATUS.SUCCESS
+      res.write('Get column list by table id ' + req.params.id)
+    },
+  },
+  '/api/v1/tables/:id/columns/:columnId': {
+    get: async (req, res) => {
+      res.statusCode = HTTP_STATUS.SUCCESS
+      res.write(`Get column by ${req.params.columnId} and table ${req.params.id}`)
+    },
+  },
+  '/api/v1/tables/:id/:columnId': {
+    get: async (req, res) => {
+      res.statusCode = HTTP_STATUS.SUCCESS
+      res.write(`Get column by ${req.params.columnId} and table ${req.params.id} without path column`)
     },
   },
 }
