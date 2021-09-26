@@ -1,20 +1,17 @@
-const fs = require('fs')
 const errorUtils = require('./error')
-
-const jsonFileType = 'utf8'
+const { readFile, writeFile } = require('../libs/fileSystem')
 
 const create = async (fileName, payload) => {
   const filePath = `database/${fileName}.json`
 
-  const result = new Promise((reslove, reject) => {
+  const result = new Promise((resolve, reject) => {
     const errorReject = (err) => errorUtils.errorHandler(err, reject)
 
-    fs.readFile(filePath, jsonFileType, (err, oldData) => {
-      // Case don't have file or first create file
+    readFile(filePath, (err, oldData) => {
       if (err) {
         const data = [payload]
-        fs.writeFile(filePath, JSON.stringify(data), jsonFileType, errorReject)
-        reslove(payload)
+        writeFile(filePath, data, errorReject)
+        resolve(payload)
 
         return
       }
@@ -22,8 +19,8 @@ const create = async (fileName, payload) => {
       oldData = JSON.parse(oldData)
       oldData.push(payload)
       json = JSON.stringify(oldData)
-      fs.writeFile(filePath, JSON.stringify(oldData), jsonFileType, errorReject)
-      reslove(payload)
+      writeFile(filePath, oldData, errorReject)
+      resolve(payload)
     })
   })
 
