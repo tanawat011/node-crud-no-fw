@@ -38,8 +38,6 @@ const initialServer = async (req, res) => {
   getQuery(req, baseUri)
   const route = getRouteAndParams(req, path, routes)
 
-  console.log(route)
-
   req.on('data', async (data) => {
     getBody(req, data)
   }).on('end', async () => {
