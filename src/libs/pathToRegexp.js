@@ -1,3 +1,7 @@
+/**
+ * Thanks for code idea from repo https://github.com/pillarjs/path-to-regexp
+ */
+
 const escapeString = (str) => {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1')
 }
