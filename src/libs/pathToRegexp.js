@@ -2,10 +2,6 @@ const escapeString = (str) => {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, '\\$1')
 }
 
-const flags = (options) => {
-  return options && options.sensitive ? '' : 'i'
-}
-
 const match = (str) => {
   const keys = []
   const re = pathToRegexp(str, keys)
@@ -57,26 +53,6 @@ const lexer = (str) => {
   while (i < str.length) {
     const char = str[i]
 
-    if (char === '*' || char === '+' || char === '?') {
-      tokens.push({ type: 'MODIFIER', index: i, value: str[i++] })
-      continue
-    }
-
-    if (char === '\\') {
-      tokens.push({ type: 'ESCAPED_CHAR', index: i++, value: str[i++] })
-      continue
-    }
-
-    if (char === '{') {
-      tokens.push({ type: 'OPEN', index: i, value: str[i++] })
-      continue
-    }
-
-    if (char === '}') {
-      tokens.push({ type: 'CLOSE', index: i, value: str[i++] })
-      continue
-    }
-
     if (char === ':') {
       let name = ''
       let j = i + 1
@@ -95,54 +71,14 @@ const lexer = (str) => {
           code === 95
         ) {
           name += str[j++]
+
           continue
         }
 
         break
       }
 
-      if (!name) throw new TypeError(`Missing parameter name at ${i}`)
-
       tokens.push({ type: 'NAME', index: i, value: name })
-      i = j
-      continue
-    }
-
-    if (char === '(') {
-      let count = 1
-      let pattern = ''
-      let j = i + 1
-
-      if (str[j] === '?') {
-        throw new TypeError(`Pattern cannot start with '?' at ${j}`)
-      }
-
-      while (j < str.length) {
-        if (str[j] === '\\') {
-          pattern += str[j++] + str[j++]
-          continue
-        }
-
-        if (str[j] === ')') {
-          count--
-          if (count === 0) {
-            j++
-            break
-          }
-        } else if (str[j] === '(') {
-          count++
-          if (str[j + 1] !== '?') {
-            throw new TypeError(`Capturing groups are not allowed at ${j}`)
-          }
-        }
-
-        pattern += str[j++]
-      }
-
-      if (count) throw new TypeError(`Unbalanced pattern at ${i}`)
-      if (!pattern) throw new TypeError(`Missing pattern at ${i}`)
-
-      tokens.push({ type: 'PATTERN', index: i, value: pattern })
       i = j
       continue
     }
@@ -155,10 +91,10 @@ const lexer = (str) => {
   return tokens
 }
 
-const parse = (str, options = {}) => {
+const parse = (str) => {
   const tokens = lexer(str)
   const prefixes = './'
-  const defaultPattern = `[^${escapeString(options.delimiter || '/#?')}]+?`
+  const defaultPattern = `[^${escapeString('/#?')}]+?`
   const result = []
   let key = 0
   let i = 0
@@ -248,24 +184,15 @@ const parse = (str, options = {}) => {
   return result
 }
 
-const tokensToRegexp = (tokens, keys, options = {}) => {
-  const {
-    strict = false,
-    start = true,
-    end = true,
-    encode = (x) => x
-  } = options;
-  const endsWith = `[${escapeString(options.endsWith || '')}]|$`
-  const delimiter = `[${escapeString(options.delimiter || '/#?')}]`
-  let route = start ? '^' : ''
+const tokensToRegexp = (tokens, keys) => {
+  let route = '^'
 
-  // Iterate over the tokens and create our regexp string.
   for (const token of tokens) {
     if (typeof token === 'string') {
-      route += escapeString(encode(token))
+      route += escapeString(token)
     } else {
-      const prefix = escapeString(encode(token.prefix))
-      const suffix = escapeString(encode(token.suffix))
+      const prefix = escapeString(token.prefix)
+      const suffix = escapeString(token.suffix)
 
       if (token.pattern) {
         if (keys) keys.push(token)
@@ -286,27 +213,9 @@ const tokensToRegexp = (tokens, keys, options = {}) => {
     }
   }
 
-  if (end) {
-    if (!strict) route += `${delimiter}?`
+  route += `[${escapeString('/#?')}]?$`
 
-    route += !options.endsWith ? '$' : `(?=${endsWith})`
-  } else {
-    const endToken = tokens[tokens.length - 1]
-    const isEndDelimited =
-      typeof endToken === 'string'
-        ? delimiter.indexOf(endToken[endToken.length - 1]) > -1
-        : endToken === undefined
-
-    if (!strict) {
-      route += `(?:${delimiter}(?=${endsWith}))?`
-    }
-
-    if (!isEndDelimited) {
-      route += `(?=${delimiter}|${endsWith})`
-    }
-  }
-
-  return new RegExp(route, flags(options))
+  return new RegExp(route, 'i')
 }
 
 module.exports = {
