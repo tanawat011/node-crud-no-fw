@@ -3,6 +3,7 @@ const url = require('url')
 const { HTTP_METHOD, HTTP_STATUS } = require('./constants')
 const { apiLogger } = require('./helpers/apiLogger')
 const { diffTimestamp } = require('./helpers/datetime')
+const { serverRequestSetup, serverResponseSetup } = require('./libs/http')
 const { routes } = require('./routes')
 const { getMethod, getRouteAndParams, getQuery, getBody } = require('./utils/request')
 const { setHeaders } = require('./utils/response')
@@ -10,25 +11,18 @@ const { setHeaders } = require('./utils/response')
 const initialServer = async (req, res) => {
   const startTimestamp = new Date().getTime()
 
+  serverRequestSetup(req)
+  serverResponseSetup(res)
   setHeaders(res)
 
   if (req.method === HTTP_METHOD.OPTIONS) {
-    res.log(req)
-    res.writeHead(HTTP_STATUS.NO_CONTENT, addonResponseHeaders)
-    res.end()
+    res.status(HTTP_STATUS.NO_CONTENT).send()
 
     return
   }
 
-  req.query = undefined
-  req.params = undefined
-  req.log = apiLogger
-
-  res.log = apiLogger
-
   routes.notFound = async (_, res) => {
-    res.statusCode = HTTP_STATUS.NOT_FOUND
-    res.end(JSON.stringify({ message: 'Path not found' }))
+    res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Path not found' })
   }
 
   const baseUri = url.parse(req.url, true)
@@ -53,7 +47,6 @@ const initialServer = async (req, res) => {
     await route(payload, res)
 
     res.log(req, res.statusCode, diffTimestamp(startTimestamp))
-    res.end()
   })
 }
 

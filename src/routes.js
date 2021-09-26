@@ -16,34 +16,28 @@ const route = {
 }
 
 route.get('/api/v1/tables', (req, res) => {
-  res.statusCode = HTTP_STATUS.SUCCESS
-  res.write('Get table list')
+  res.status(HTTP_STATUS.SUCCESS).json({ test: 'get table list' })
 })
 
 route.post('/api/v1/tables', async (req, res) => {
   await crud.create('tables', req.body)
-  res.statusCode = HTTP_STATUS.CREATED
-  res.write('Created table')
+  res.status(HTTP_STATUS.CREATED).json({ test: 'created table' })
 })
 
 route.get('/api/v1/tables/:id', (req, res) => {
-  res.statusCode = HTTP_STATUS.SUCCESS
-  res.write('Get table by id ' + req.params.id)
+  res.status(HTTP_STATUS.SUCCESS).json({ test: 'Get table by id ' + req.params.id })
 })
 
 route.get('/api/v1/tables/:id/columns', (req, res) => {
-  res.statusCode = HTTP_STATUS.SUCCESS
-  res.write('Get column list by table id ' + req.params.id)
+  res.status(HTTP_STATUS.SUCCESS).json({ test: 'Get column list by table id ' + req.params.id })
 })
 
 route.get('/api/v1/tables/:id/columns/:columnId', (req, res) => {
-  res.statusCode = HTTP_STATUS.SUCCESS
-  res.write(`Get column by ${req.params.columnId} and table ${req.params.id}`)
+  res.status(HTTP_STATUS.SUCCESS).json({ test: `Get column by ${req.params.columnId} and table ${req.params.id}` })
 })
 
 route.get('/api/v1/tables/:id/:columnId', (req, res) => {
-  res.statusCode = HTTP_STATUS.SUCCESS
-  res.write(`Get column by ${req.params.columnId} and table ${req.params.id} without path column`)
+  res.status(HTTP_STATUS.SUCCESS).json({ test: `Get column by ${req.params.columnId} and table ${req.params.id} without path column` })
 })
 
 module.exports = {
