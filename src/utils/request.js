@@ -1,39 +1,21 @@
+const pathToRegexp = require('../libs/pathToRegexp')
+
 const getMethod = (req) => {
   req.method = req.method.toLowerCase()
 }
 
 const getRouteAndParams = (req, path, routes) => {
-  let pathSplitSlash = path.split('/')
-
   const route = Object.entries(routes)
-    .filter(([routeKey]) => {
-      const routeKeySplitSlash = routeKey.split('/')
+    ?.find(([key]) => {
+      const matched = pathToRegexp.match(key)(path)
 
-      if (pathSplitSlash.length === routeKeySplitSlash.length) {
-        if (routeKey.includes(path)) {
-          return true
-        }
-
-        pathSplitSlash = pathSplitSlash.map((pathSlash, index) => {
-          const routeKeySlash = routeKeySplitSlash[index]
-
-          if (pathSlash === routeKeySlash) {
-            return pathSlash
-          }
-
-          getParams(req, routeKeySlash, pathSlash)
-
-          return routeKeySlash
-        })
-
-        if (routeKey.includes(pathSplitSlash.join('/'))) {
-          return true
-        }
+      if (matched) {
+        getParams(req, matched.params)
       }
 
-      return false
+      return matched
     })
-    .map(([, value]) => value)[0]
+    ?.find(value => typeof value === 'object')
 
   if (!route) {
     return routes['notFound']
@@ -42,8 +24,8 @@ const getRouteAndParams = (req, path, routes) => {
   return route[req.method]
 }
 
-const getParams = (req, key, value) => {
-  req.params = { ...req.params, [key.replace(':', '')]: value }
+const getParams = (req, params) => {
+  req.params = { ...params }
 }
 
 const getQuery = (req, baseUri) => {
