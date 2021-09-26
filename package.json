@@ -1,7 +1,7 @@
 {
-  "name": "top-secret",
-  "version": "0.0.1",
-  "description": "Keep all password and token is secret",
+  "name": "node-crud-without-framework",
+  "version": "1.0.0",
+  "description": "For study case",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
