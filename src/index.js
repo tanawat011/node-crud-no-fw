@@ -1,7 +1,6 @@
 const url = require('url')
 
 const { HTTP_METHOD, HTTP_STATUS } = require('./constants')
-const { apiLogger } = require('./helpers/apiLogger')
 const { diffTimestamp } = require('./helpers/datetime')
 const { serverRequestSetup, serverResponseSetup } = require('./libs/http')
 const { routes } = require('./routes')
