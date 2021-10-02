@@ -45,7 +45,9 @@ const initialServer = async (req, res) => {
 
     await route(payload, res)
 
-    res.log(req, res.statusCode, diffTimestamp(startTimestamp))
+    res.on('close', () => {
+      res.log(req, res.statusCode, diffTimestamp(startTimestamp))
+    })
   })
 }
 

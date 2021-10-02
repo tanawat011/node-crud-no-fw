@@ -1,8 +1,10 @@
+const { apiPrefix } = require('./constants')
 const { setupRoutes } = require('./routers')
 
 const routes = {}
 
 const setupPathAndController = (path, controller, method) => {
+  path = apiPrefix + path
   routes[path] = { ...routes[path], [method]: controller }
 }
 

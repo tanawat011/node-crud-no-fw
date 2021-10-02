@@ -1,6 +1,5 @@
 module.exports = {
+  ...require('./common'),
   ...require('./httpMethod'),
   ...require('./httpStatus'),
-  apiPrefix: '/api/v1',
-  rootDatabase: 'database',
 }
